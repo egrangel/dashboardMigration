@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Migration Tool</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary font-weight-bold" href="#">Dashboard Migration Tool</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="config-tab" data-toggle="tab" href="#config" role="tab" aria-controls="config" aria-selected="true">
+                    <i class="fas fa-cog mr-2"></i>Configuration
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="spaces-tab" data-toggle="tab" href="#spaces" role="tab" aria-controls="spaces" aria-selected="false">
+                    <i class="fas fa-layer-group mr-2"></i>Spaces
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                    <i class="fas fa-users mr-2"></i>Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="roles-tab" data-toggle="tab" href="#roles" role="tab" aria-controls="roles" aria-selected="false">
+                    <i class="fas fa-user-shield mr-2"></i>Roles
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="dataviews-tab" data-toggle="tab" href="#dataviews" role="tab" aria-controls="dataviews" aria-selected="false">
+                    <i class="fas fa-database mr-2"></i>Data Views
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="automation-tab" data-toggle="tab" href="#automation" role="tab" aria-controls="automation" aria-selected="false">
+                    <i class="fas fa-magic mr-2"></i>Automation
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content mt-3">
+            <!-- Configuration Tab -->
+            <div class="tab-pane fade show active" id="config" role="tabpanel" aria-labelledby="config-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Elasticsearch Configuration</h5>
+                        <p class="card-text text-muted">Enter your Elasticsearch/Kibana connection details</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="config-select">Select Configuration</label>
+                            <select id="config-select" class="form-control">
+                                <option value="">-- Select a configuration --</option>
+                                {% for config in configurations %}
+                                    <option value="{{ config.config_id }}">{{ config.config_id }} ({{ config.config_name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <form id="config-form" method="POST" action="{{ url_for('save_configuration') }}">
+                            {{ form.hidden_tag() }}
+                            <input type="hidden" id="config_id" name="config_id" value="">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    {{ form.config_name.label(class="form-label") }}
+                                    {{ form.config_name(class="form-control") }}
+                                    {% if form.config_name.errors %}
+                                        <div class="invalid-feedback">{{ form.config_name.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {{ form.es_url.label(class="form-label") }}
+                                    {{ form.es_url(class="form-control") }}
+                                    {% if form.es_url.errors %}
+                                        <div class="invalid-feedback">{{ form.es_url.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    {{ form.es_port.label(class="form-label") }}
+                                    {{ form.es_port(class="form-control") }}
+                                    {% if form.es_port.errors %}
+                                        <div class="invalid-feedback">{{ form.es_port.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {{ form.kb_url.label(class="form-label") }}
+                                    {{ form.kb_url(class="form-control") }}
+                                    {% if form.kb_url.errors %}
+                                        <div class="invalid-feedback">{{ form.kb_url.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    {{ form.kb_port.label(class="form-label") }}
+                                    {{ form.kb_port(class="form-control") }}
+                                    {% if form.kb_port.errors %}
+                                        <div class="invalid-feedback">{{ form.kb_port.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {{ form.es_user.label(class="form-label") }}
+                                    {{ form.es_user(class="form-control") }}
+                                    {% if form.es_user.errors %}
+                                        <div class="invalid-feedback">{{ form.es_user.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    {{ form.es_pass.label(class="form-label") }}
+                                    {{ form.es_pass(class="form-control") }}
+                                    {% if form.es_pass.errors %}
+                                        <div class="invalid-feedback">{{ form.es_pass.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    {{ form.es_index_name.label(class="form-label") }}
+                                    {{ form.es_index_name(class="form-control") }}
+                                    {% if form.es_index_name.errors %}
+                                        <div class="invalid-feedback">{{ form.es_index_name.errors[0] }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-group text-right">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save mr-2"></i> Save Configuration
+                                </button>
+                                <button type="button" id="delete-config" class="btn btn-danger">
+                                    <i class="fas fa-trash mr-2"></i> Delete Configuration
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spaces Tab -->
+            <div class="tab-pane fade" id="spaces" role="tabpanel" aria-labelledby="spaces-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Kibana Spaces</h5>
+                            <p class="card-text text-muted">Manage your Kibana spaces</p>
+                        </div>
+                        <button id="refresh-spaces" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">ID</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="spaces-table">
+                                    <!-- Spaces will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Elasticsearch Users</h5>
+                            <p class="card-text text-muted">Manage your Elasticsearch users</p>
+                        </div>
+                        <button id="refresh-users" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Username</th>
+                                        <th scope="col">Email</th>
+                                        <th scope="col">Roles</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles Tab -->
+            <div class="tab-pane fade" id="roles" role="tabpanel" aria-labelledby="roles-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Elasticsearch Roles</h5>
+                            <p class="card-text text-muted">Manage your Elasticsearch roles</p>
+                        </div>
+                        <button id="refresh-roles" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Indices</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roles-table">
+                                    <!-- Roles will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Views Tab -->
+            <div class="tab-pane fade" id="dataviews" role="tabpanel" aria-labelledby="dataviews-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Kibana Data Views</h5>
+                            <p class="card-text text-muted">Manage your Kibana data views</p>
+                        </div>
+                        <button id="refresh-dataviews" class="btn btn-outline-primary">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th scope="col">Title</th>
+                                        <th scope="col">Index Pattern</th>
+                                        <th scope="col">Space</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataviews-table">
+                                    <!-- Data views will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automation Tab -->
+            <div class="tab-pane fade" id="automation" role="tabpanel" aria-labelledby="automation-tab">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">Run Automation</h5>
+                        <p class="card-text text-muted">Create resources for a new client</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="automation-form">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="client_id">Client ID</label>
+                                    <input type="text" class="form-control" id="client_id" placeholder="Enter client ID">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="space_name">Space Name</label>
+                                    <input type="text" class="form-control" id="space_name" placeholder="Enter space name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_index_alias" checked>
+                                    <label class="form-check-label" for="create_index_alias">
+                                        Create Index Alias
+                                    </label>
+                                    <small class="form-text text-muted">Create an index alias with client-specific filter</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_space" checked>
+                                    <label class="form-check-label" for="create_space">
+                                        Create Space
+                                    </label>
+                                    <small class="form-text text-muted">Create a dedicated Kibana space for the client</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_role" checked>
+                                    <label class="form-check-label" for="create_role">
+                                        Create Role
+                                    </label>
+                                    <small class="form-text text-muted">Create a role with access to the client's index and space</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_user" checked>
+                                    <label class="form-check-label" for="create_user">
+                                        Create User
+                                    </label>
+                                    <small class="form-text text-muted">Create a user with the client's role</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="create_data_view" checked>
+                                    <label class="form-check-label" for="create_data_view">
+                                        Create Data View
+                                    </label>
+                                    <small class="form-text text-muted">Create a data view for the client's index</small>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="copy_dashboards" checked>
+                                    <label class="form-check-label" for="copy_dashboards">
+                                        Copy Dashboards
+                                    </label>
+                                    <small class="form-text text-muted">Copy dashboards to the client's space</small>
+                                </div>
+                            </div>
+                            <div class="form-group text-right">
+                                <button type="button" id="run-automation" class="btn btn-primary">
+                                    <i class="fas fa-play mr-2"></i> Run Automation
+                                </button>
+                            </div>
+                            <div id="automation-output" class="mt-4 p-3 bg-light border rounded">
+                                <h5 class="font-weight-bold">Automation Output</h5>
+                                <pre id="output-box" class="bg-white p-2 border rounded"></pre>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages as Modal -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <!-- Modal -->
+        <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="flashModalLabel">{{ category|title }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {{ message }}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Scripts -->
+    <script>
+        $(document).ready(function() {
+            if ($('#flashModal').length) {
+                $('#flashModal').modal('show');
+            }
+        });
+
+        function switchTab(tabName) {
+            $('.tab-pane').removeClass('show active');
+            $('#' + tabName).addClass('show active');
+            $('.nav-link').removeClass('active');
+            $('#' + tabName + '-tab').addClass('active');
+        }
+
+        $('#run-automation').click(function() {
+            const configId = $('#config-select').val();
+            if (!configId) {
+                alert('Please select a configuration before running automation.');
+                return;
+            }
+
+            const clientId = $('#client_id').val();
+            const spaceName = $('#space_name').val();
+
+            if (!clientId || !spaceName) {
+              alert('Client ID and Space Name are required.');
+              return;
+            }
+
+            const outputBox = $('#output-box');
+            outputBox.text('Running automation...');
+
+            const createIndexAlias = $('#create_index_alias').is(':checked');
+            const createSpace = $('#create_space').is(':checked');
+            const createRole = $('#create_role').is(':checked');
+            const createUser = $('#create_user').is(':checked');
+            const createDataView = $('#create_data_view').is(':checked');
+            const copyDashboards = $('#copy_dashboards').is(':checked');
+
+            const data = {
+                config_id: configId,
+                client_id: clientId,
+                space_name: spaceName,
+                create_index_alias: createIndexAlias,
+                create_space: createSpace,
+                create_role: createRole,
+                create_user: createUser,
+                create_data_view: createDataView,
+                copy_dashboards: copyDashboards
+            };
+
+            fetch(`{{ url_for('run_automation') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    outputBox.text(response.message);
+                    throw new Error('Network response was not ok');
+                }
+
+                $('#refresh-spaces').click();
+                $('#refresh-users').click();
+                $('#refresh-roles').click();
+                // $('#refresh-dataviews').click();
+
+                return response.json();
+            })
+            .then(data => {
+                outputBox.html(`<pre>${JSON.stringify(data.results, null, 2)}</pre>`);
+            })
+            .catch(error => {
+                outputBox.html(`<pre>${JSON.stringify(error.JSON, null, 2)}</pre>`);
+                alert('Failed to run automation. Please try again.');
+            });
+        });
+
+        $('#refresh-spaces').click(function() {
+          const configId = $('#config-select').val();
+          if (configId) {
+
+            fetch(`{{ url_for('get_spaces') }}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                es_url: $('#es_url').val(),
+                es_port: $('#es_port').val(),
+                es_user: $('#es_user').val(),
+                es_pass: $('#es_pass').val(),
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              const spacesTable = $('#spaces-table');
+              spacesTable.empty();
+              data.spaces.forEach(space => {
+                spacesTable.append(`
+                  <tr>
+                    <td>${space.id}</td>
+                    <td>${space.name}</td>
+                    <td>${space.description}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-space" data-id="${space.id}" ${space.id === 'default' ? 'disabled' : ''}>
+                        <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                  </tr>
+                `);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching spaces:', error);
+              alert('Failed to fetch spaces.');
+            });
+          } else {
+            alert('No configuration selected.')
+          }
+        });
+
+        $('#refresh-users').click(function() {
+            const configId = $('#config-select').val();
+            if (configId) {
+                fetch(`{{ url_for('get_users') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        es_url: $('#es_url').val(),
+                        es_port: $('#es_port').val(),
+                        es_user: $('#es_user').val(),
+                        es_pass: $('#es_pass').val(),
+                    })
+                })
+                .then(response => response.text())  // First, get the response as text
+                .then(textData => {
+                    console.log('Received text data:', textData);
+                    
+                    // Parse the text data into a JSON object
+                    const data = JSON.parse(textData);
+                    
+                    const usersTable = $('#users-table');
+                    usersTable.empty(); // Clear the table
+
+                    // Filter out reserved/system users and non-custom users
+                    const nonSystemUsers = Object.keys(data)
+                        .filter(key => {
+                            const user = data[key];
+                            const isCustomUser = 
+                                user.username && 
+                                user.username !== 'undefined' &&
+                                (!user.metadata || !user.metadata._reserved) &&
+                                (!user.metadata || !user.metadata._deprecated);
+                            
+                            return isCustomUser;
+                        })
+                        .map(key => data[key]);
+
+                    console.log('Non-system users:', nonSystemUsers);
+
+                    // Iterate over filtered users
+                    nonSystemUsers.forEach(user => {
+                        const roles = user.roles || []; // Ensure roles is always an array
+                        usersTable.append(`
+                            <tr>
+                                <td>${user.username}</td>
+                                <td>${user.email || 'N/A'}</td>
+                                <td>${roles.join(', ')}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger delete-user" data-id="${user.username}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+
+                    // If no users found, show a message
+                    if (nonSystemUsers.length === 0) {
+                        usersTable.append(`
+                            <tr>
+                                <td colspan="4" class="text-center">No custom users found</td>
+                            </tr>
+                        `);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    alert('Failed to fetch users.');
+                });
+            } else {
+                alert('No configuration selected.')
+            }
+        });
+
+        $('#refresh-roles').click(function() {
+            const configId = $('#config-select').val();
+            if (configId) {
+                fetch(`{{ url_for('get_roles') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        es_url: $('#es_url').val(),
+                        es_port: $('#es_port').val(),
+                        es_user: $('#es_user').val(),
+                        es_pass: $('#es_pass').val(),
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Received roles:', data);
+
+                    const rolesTable = $('#roles-table');
+                    rolesTable.empty(); // Clear the table
+
+                    // Handle potential error
+                    if (data.error) {
+                        rolesTable.append(`
+                            <tr>
+                                <td colspan="4" class="text-center text-danger">
+                                    Error: ${data.error}
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    // Filter for custom roles
+                    const customRoles = data.roles.filter(role => {
+                        // List of known system role prefixes or exact names
+                        const systemRolePrefixes = [
+                            'kibana_', 
+                            'logstash_', 
+                            'beats_', 
+                            'apm_', 
+                            'remote_monitoring_',
+                            'reporting_',
+                            'ml_'
+                        ];
+
+                        // Check if the role name matches any system role patterns
+                        const isSystemRole = systemRolePrefixes.some(prefix => 
+                            role.name.toLowerCase().startsWith(prefix)
+                        );
+
+                        return !isSystemRole;
+                    });
+
+                    // Iterate over custom roles
+                    customRoles.forEach(role => {
+                        // Safely handle indexes and other properties
+                        const indexes = role.elasticsearch?.indices || [];
+                        const indexList = indexes.length > 0 
+                            ? indexes.map(idx => idx.names ? idx.names.join(', ') : idx).join(', ')
+                            : 'N/A';
+
+                        rolesTable.append(`
+                            <tr>
+                                <td>${role.name || 'N/A'}</td>
+                                <td>${indexList}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-info view-role" data-name="${role.name}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-role" data-name="${role.name}">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+
+                    // If no custom roles found, show a message
+                    if (customRoles.length === 0) {
+                        rolesTable.append(`
+                            <tr>
+                                <td colspan="4" class="text-center">No custom roles found</td>
+                            </tr>
+                        `);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching roles:', error);
+                    alert('Failed to fetch roles.');
+                });
+            } else {
+                alert('No configuration selected.')
+            }
+        });
+
+        $(document).on('click', '.view-role', function() {
+            const roleName = $(this).data('name');
+
+            console.log('Viewing role:', roleName);
+        });
+
+        $(document).on('click', '.delete-role', function() {
+            const roleName = $(this).data('name');
+
+            console.log('Deleting role:', roleName);
+        });
+
+        $('#refresh-dataviews').click(function() {
+            const configId = $('#config-select').val();
+            if (configId) {
+                fetch(`{{ url_for('get_dataviews') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        es_url: $('#es_url').val(),
+                        es_port: $('#es_port').val(),
+                        es_user: $('#es_user').val(),
+                        es_pass: $('#es_pass').val(),
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Received dataviews:', data);
+
+                    const dataviewsTable = $('#dataviews-table');
+                    dataviewsTable.empty();
+
+                    // Handle potential error
+                    if (data.error) {
+                        dataviewsTable.append(`
+                            <tr>
+                                <td colspan="4" class="text-center text-danger">
+                                    Error: ${data.error}
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    // Filter for custom dataviews
+                    const customDataviews = data.dataviews.filter(dataview => {
+                        // List of known system dataview prefixes to filter out
+                        const systemPrefixes = [
+                            '.kibana',
+                            'metrics-',
+                            'logs-',
+                            'apm-'
+                        ];
+
+                        const isSystemDataview = systemPrefixes.some(prefix => 
+                            dataview.title.toLowerCase().startsWith(prefix)
+                        );
+
+                        return !isSystemDataview;
+                    });
+
+                    customDataviews.forEach(dataview => {
+                        // Safely extract index patterns
+                        const indexPatterns = dataview.attributes?.title || 'N/A';
+                        
+                        // Safely extract space
+                        const space = dataview.attributes?.spaceId || 'default';
+
+                        dataviewsTable.append(`
+                            <tr>
+                                <td>${dataview.attributes?.title || 'N/A'}</td>
+                                <td>${indexPatterns}</td>
+                                <td>${space}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-info view-dataview" data-id="${dataview.id}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-dataview" data-id="${dataview.id}">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+
+                    // If no custom dataviews found, show a message
+                    if (customDataviews.length === 0) {
+                        dataviewsTable.append(`
+                            <tr>
+                                <td colspan="4" class="text-center">No custom dataviews found</td>
+                            </tr>
+                        `);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching dataviews:', error);
+                    alert('Failed to fetch dataviews.');
+                });
+            } else {
+                alert('No configuration selected.')
+            }
+        });
+
+        $(document).on('click', '.view-dataview', function() {
+            const dataviewId = $(this).data('id');
+            console.log('Viewing dataview:', dataviewId);
+        });
+
+        $(document).on('click', '.delete-dataview', function() {
+            const dataviewId = $(this).data('id');
+            console.log('Deleting dataview:', dataviewId);
+        });
+
+        $('#config-select').change(function() {
+            const configId = $(this).val();
+            if (configId) {
+                fetch(`{{ url_for('get_configuration', config_id=0) }}`.replace('/0', `/${configId}`))
+                    .then(response => response.json())
+                    .then(data => {
+                        $('#config_id').val(data.config_id);
+                        $('#config_name').val(data.config_name);
+                        $('#es_url').val(data.es_url);
+                        $('#es_port').val(data.es_port);
+                        $('#kb_url').val(data.kb_url);
+                        $('#kb_port').val(data.kb_port);
+                        $('#es_user').val(data.es_user);
+                        $('#es_pass').val(data.es_pass);
+                        $('#es_index_name').val(data.es_index_name);
+
+                      $('#refresh-spaces').click();
+                      $('#refresh-users').click();
+                      $('#refresh-roles').click();
+                      // $('#refresh-dataviews').click();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching configuration:', error);
+                    });
+            } else {
+                $('#config_id').val('');
+                $('#config_name').val('');
+                $('#es_url').val('');
+                $('#es_port').val('');
+                $('#kb_url').val('');
+                $('#kb_port').val('');
+                $('#es_user').val('');
+                $('#es_pass').val('');
+                $('#es_index_name').val('');
+            }
+        });
+
+        // Update the hidden input when a configuration is selected
+        $('#config-select').change(function() {
+            const selectedConfigId = $(this).val();
+            $('#config_id').val(selectedConfigId); // Update the hidden input
+        });
+
+        $('#delete-config').click(function() {
+            const configId = $('#config-select').val();
+            console.log('configId: ', configId);
+            if (configId) {
+                if (confirm('Are you sure you want to delete this configuration?')) {
+                    fetch(`{{ url_for('get_configuration', config_id=0) }}`.replace('/0', `/${configId}`), 
+                    {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting configuration:', error);
+                        alert('Failed to delete configuration.');
+                    });
+                }
+            } else {
+                alert('No configuration selected.');
+            }
+        });
+    </script>
+</body>
+</html>
