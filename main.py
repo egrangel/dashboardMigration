@@ -11,8 +11,8 @@ if __name__ == "__main__":
     elastic_port="9200"
     kibana_host="prod-mq.seventh.com.br"
     kibana_port="5601"
-    username="elastic"
-    password="Seventh01"
+    username=""
+    password=""
 
     automation = dashboardMigration.ElasticAutomation(
         elastic_host=elastic_host,
